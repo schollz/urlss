@@ -78,6 +78,9 @@ func main() {
 		action := c.Param("action")
 		action = action[1:len(action)]
 		if strings.Contains(action, "http") {
+			if !strings.Contains(action, "//") {
+				action = strings.Replace(action, "/", "//", 1)
+			}
 			// Save the URL
 			data.RLock()
 			shortened, ok := data.URLToString[action]
