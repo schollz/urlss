@@ -266,6 +266,8 @@
             <p>
             </p>
             <input id="urlshorten" style="width:100%;border:2px;padding:4px;margin:-5px;font-size:35px;" onkeypress="return runScript(event)" />
+            <br><br>
+            <button type="button" style="width:100%;border:1px;padding:4px;margin:-5px;font-size:35px;" onclick="shortenURL()">Go!</button>
         </div>
 
         <div class="clear"></div>
@@ -275,11 +277,16 @@
 document.getElementById("urlshorten").focus();
 function runScript(e) {
     if (e.keyCode == 13) {
-        var tb = document.getElementById("urlshorten");
-        console.log(tb.value);
-        window.location = tb.value;
+        shortenURL();
         return false;
     }
+}
+
+function shortenURL() {
+  var tb = document.getElementById("urlshorten");
+  console.log(tb.value);
+  window.location = tb.value;
+  return false
 }
 </script>
 
