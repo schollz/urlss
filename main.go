@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"io/ioutil"
 	"math/rand"
@@ -14,51 +15,75 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var data = struct {
+type Data struct {
+	URLToString map[string]string `json:"url_to_string"`
+	StringToURL map[string]string `json:"string_to_url"`
+}
+
+type Filesystem struct {
+	data Data
 	sync.RWMutex
-	URLToString map[string]string
-	StringToURL map[string]string
-}{URLToString: make(map[string]string), StringToURL: make(map[string]string)}
+}
 
-func loadData() {
-	if _, err := os.Stat("urltostring.json"); !os.IsNotExist(err) {
-		// path/to/whatever does exist
-		b, _ := ioutil.ReadFile("urltostring.json")
-		data.Lock()
-		json.Unmarshal(b, &data.URLToString)
-		data.Unlock()
-	}
-	if _, err := os.Stat("stringtourl.json"); !os.IsNotExist(err) {
-		// path/to/whatever does exist
-		b, _ := ioutil.ReadFile("stringtourl.json")
-		data.Lock()
-		json.Unmarshal(b, &data.StringToURL)
-		data.Unlock()
+func (s *Filesystem) Init() {
+	s.Load()
+}
+
+func (s *Filesystem) Load() {
+	s.Lock()
+	defer s.Unlock()
+	if _, err := os.Stat("urls.json"); !os.IsNotExist(err) {
+		b, _ := ioutil.ReadFile("urls.json")
+		json.Unmarshal(b, &s.data)
+	} else {
+		s.data.URLToString = make(map[string]string)
+		s.data.StringToURL = make(map[string]string)
 	}
 }
 
-func saveData() {
-	data.RLock()
-	defer data.RUnlock()
-
-	b, _ := json.MarshalIndent(data.StringToURL, "", " ")
-	ioutil.WriteFile("stringtourl.json", b, 0644)
-	b, _ = json.MarshalIndent(data.URLToString, "", " ")
-	ioutil.WriteFile("urltostring.json", b, 0644)
+func (s *Filesystem) Save(url string, short string) {
+	s.Lock()
+	s.data.URLToString[url] = short
+	s.data.StringToURL[short] = url
+	b, _ := json.MarshalIndent(s.data, "", " ")
+	ioutil.WriteFile("urls.json", b, 0644)
+	s.Unlock()
 }
+
+func (s *Filesystem) GetShortFromURL(url string) (string, error) {
+	s.RLock()
+	defer s.RUnlock()
+	val, ok := s.data.URLToString[url]
+	if !ok {
+		return "", errors.New("URL does not exist")
+	} else {
+		return val, nil
+	}
+}
+
+func (s *Filesystem) GetURLFromShort(short string) (string, error) {
+	s.RLock()
+	defer s.RUnlock()
+	val, ok := s.data.StringToURL[short]
+	if !ok {
+		return "", errors.New("short does not exist")
+	} else {
+		return val, nil
+	}
+}
+
+var fs Filesystem
 
 func init() {
-	loadData()
+	fs.Init()
 }
 
-func getShortenedURL() string {
-	data.RLock()
-	defer data.RUnlock()
+func newShortenedURL() string {
 	for n := 2; n < 10; n++ {
 		for i := 0; i < 10; i++ {
 			candidate := RandString(n)
-			_, ok := data.StringToURL[candidate]
-			if !ok {
+			_, err := fs.GetURLFromShort(candidate)
+			if err != nil {
 				return candidate
 			}
 		}
@@ -78,35 +103,28 @@ func main() {
 		action := c.Param("action")
 		action = action[1:len(action)]
 		if strings.Contains(action, "http") {
-			if !strings.Contains(action, "//") {
-				action = strings.Replace(action, "/", "//", 1)
+			url := action
+			if !strings.Contains(url, "//") {
+				url = strings.Replace(url, "/", "//", 1)
 			}
+
 			// Save the URL
-			data.RLock()
-			shortened, ok := data.URLToString[action]
-			data.RUnlock()
-			if ok {
-				c.String(http.StatusOK, "Already shortened %s as %s/%s", action, Host, shortened)
+			shortened, err := fs.GetShortFromURL(url)
+			if err == nil {
+				c.String(http.StatusOK, "Already shortened %s as %s/%s", url, Host, shortened)
 				return
 			}
 
 			// Get a new shortend URL
-			shortened = getShortenedURL()
-			data.Lock()
-			data.StringToURL[shortened] = action
-			data.URLToString[action] = shortened
-			data.Unlock()
+			shortened = newShortenedURL()
+			fs.Save(url, shortened)
 
-			go saveData()
-			c.String(http.StatusOK, "Generated new URL from %s: %s/%s", action, Host, shortened)
+			c.String(http.StatusOK, "Generated new URL from %s: %s/%s", url, Host, shortened)
 			return
-
 		} else {
 			// Redirect the URL if it is shortened
-			data.RLock()
-			url, ok := data.StringToURL[action]
-			data.RUnlock()
-			if ok {
+			url, err := fs.GetURLFromShort(action)
+			if err == nil {
 				c.Redirect(301, url)
 				return
 			} else {
