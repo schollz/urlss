@@ -112,6 +112,7 @@ func main() {
 			if err == nil {
 				c.HTML(http.StatusOK, "index.html", gin.H{
 					"shortened": shortened,
+					"host":      Host,
 				})
 				return
 			}
@@ -122,6 +123,7 @@ func main() {
 
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"shortened": shortened,
+				"host":      Host,
 			})
 			return
 		} else {
@@ -132,10 +134,11 @@ func main() {
 				return
 			} else {
 				if action == "" {
-					c.HTML(http.StatusOK, "index.html", gin.H{})
+					c.HTML(http.StatusOK, "index.html", gin.H{"host": Host})
 				} else {
 					c.HTML(http.StatusOK, "index.html", gin.H{
 						"error": "Could not find " + action,
+						"host":  Host,
 					})
 				}
 			}
