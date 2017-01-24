@@ -104,6 +104,9 @@ func main() {
 	r.GET("/*action", func(c *gin.Context) {
 		action := c.Param("action")
 		action = action[1:len(action)]
+		if strings.Contains(action, "http") && !strings.Contains(action, "//") {
+			action = strings.Replace(action, "/", "//", 1)
+		}
 		parsedURL, _ := urlx.Parse(action)
 		url, _ := urlx.Normalize(parsedURL)
 		if len(url) > 0 && !strings.Contains(url, "favicon.ico") {
