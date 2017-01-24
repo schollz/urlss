@@ -255,6 +255,8 @@
             }
         }
     </style>
+
+    <style type="text/css">a {text-decoration: none}</style>
 </head>
 
 <body>
@@ -265,9 +267,9 @@
             <h2>{{ with .error }}{{ . }}{{ end}}</h2>
             <p>
             </p>
-            <input id="urlshorten" style="width:100%;border:2px;padding:4px;margin:-5px;font-size:35px;" onkeypress="return runScript(event)" />
+            <input id="urlshorten" style="width:100%;border:2px;padding:4px;font-size:35px;" onkeypress="return runScript(event)" />
             <br><br>
-            <button type="button" style="width:100%;border:1px;padding:4px;margin:-5px;font-size:35px;" onclick="shortenURL()">Go!</button>
+            <button type="button" style="width:100%;border:1px;padding:4px;font-size:35px;" onclick="shortenURL()">Go!</button>
         </div>
 
         <div class="clear"></div>
