@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/goware/urlx"
 )
 
 type Data struct {
@@ -99,19 +100,19 @@ func main() {
 	flag.StringVar(&Port, "p", "8006", "port (default 8006)")
 	flag.Parse()
 	r := gin.Default()
+	r.LoadHTMLGlob("templates/*")
 	r.GET("/*action", func(c *gin.Context) {
 		action := c.Param("action")
 		action = action[1:len(action)]
-		if strings.Contains(action, "http") {
-			url := action
-			if !strings.Contains(url, "//") {
-				url = strings.Replace(url, "/", "//", 1)
-			}
-
+		parsedURL, _ := urlx.Parse(action)
+		url, _ := urlx.Normalize(parsedURL)
+		if len(url) > 0 && !strings.Contains(url, "favicon.ico") {
 			// Save the URL
 			shortened, err := fs.GetShortFromURL(url)
 			if err == nil {
-				c.String(http.StatusOK, "Already shortened %s as %s/%s", url, Host, shortened)
+				c.HTML(http.StatusOK, "index.html", gin.H{
+					"shortened": shortened,
+				})
 				return
 			}
 
@@ -119,7 +120,9 @@ func main() {
 			shortened = newShortenedURL()
 			fs.Save(url, shortened)
 
-			c.String(http.StatusOK, "Generated new URL from %s: %s/%s", url, Host, shortened)
+			c.HTML(http.StatusOK, "index.html", gin.H{
+				"shortened": shortened,
+			})
 			return
 		} else {
 			// Redirect the URL if it is shortened
@@ -129,9 +132,11 @@ func main() {
 				return
 			} else {
 				if action == "" {
-					c.String(http.StatusOK, "Usage:\n\n%s/http... to store http...\n\n%s/... to redirect", Host, Host)
+					c.HTML(http.StatusOK, "index.html", gin.H{})
 				} else {
-					c.String(http.StatusOK, "Could not find %s", action)
+					c.HTML(http.StatusOK, "index.html", gin.H{
+						"error": "Could not find " + action,
+					})
 				}
 			}
 		}
