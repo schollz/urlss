@@ -129,7 +129,7 @@ func main() {
 				return
 			} else {
 				if action == "" {
-					c.String(http.StatusOK, "Usage:\n\n/https://.... to store\n\n/... to redirect")
+					c.String(http.StatusOK, "Usage:\n\n%s/http... to store http...\n\n%s/... to redirect", Host, Host)
 				} else {
 					c.String(http.StatusOK, "Could not find %s", action)
 				}
