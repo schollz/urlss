@@ -69,6 +69,7 @@ func getShortenedURL() string {
 var Host, Port string
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	flag.StringVar(&Host, "h", "", "host (optional)")
 	flag.StringVar(&Port, "p", "8006", "port (default 8006)")
 	flag.Parse()
