@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -147,6 +148,7 @@ func main() {
 			}
 		}
 	})
+	fmt.Println("Listening on port", Port)
 	r.Run(":" + Port) // listen and serve on 0.0.0.0:8080
 }
 
