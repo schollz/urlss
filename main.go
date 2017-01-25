@@ -1,90 +1,30 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/goware/urlx"
+	"github.com/schollz/jsonstore"
 )
 
-type Data struct {
-	URLToString map[string]string `json:"url_to_string"`
-	StringToURL map[string]string `json:"string_to_url"`
-}
-
-type Filesystem struct {
-	data Data
-	sync.RWMutex
-}
-
-func (s *Filesystem) Init() {
-	s.Load()
-}
-
-func (s *Filesystem) Load() {
-	s.Lock()
-	defer s.Unlock()
-	if _, err := os.Stat("urls.json"); !os.IsNotExist(err) {
-		b, _ := ioutil.ReadFile("urls.json")
-		json.Unmarshal(b, &s.data)
-	} else {
-		s.data.URLToString = make(map[string]string)
-		s.data.StringToURL = make(map[string]string)
-	}
-}
-
-func (s *Filesystem) Save(url string, short string) {
-	s.Lock()
-	s.data.URLToString[url] = short
-	s.data.StringToURL[short] = url
-	b, _ := json.MarshalIndent(s.data, "", " ")
-	ioutil.WriteFile("urls.json", b, 0644)
-	s.Unlock()
-}
-
-func (s *Filesystem) GetShortFromURL(url string) (string, error) {
-	s.RLock()
-	defer s.RUnlock()
-	val, ok := s.data.URLToString[url]
-	if !ok {
-		return "", errors.New("URL does not exist")
-	} else {
-		return val, nil
-	}
-}
-
-func (s *Filesystem) GetURLFromShort(short string) (string, error) {
-	s.RLock()
-	defer s.RUnlock()
-	val, ok := s.data.StringToURL[short]
-	if !ok {
-		return "", errors.New("short does not exist")
-	} else {
-		return val, nil
-	}
-}
-
-var fs Filesystem
+var fs jsonstore.JSONStore
 
 func init() {
 	fs.Init()
+	fs.SetLocation("urls.json")
 }
 
 func newShortenedURL() string {
 	for n := 2; n < 10; n++ {
 		for i := 0; i < 10; i++ {
 			candidate := RandString(n)
-			_, err := fs.GetURLFromShort(candidate)
+			_, err := fs.Get(candidate)
 			if err != nil {
 				return candidate
 			}
@@ -112,10 +52,10 @@ func main() {
 		url, _ := urlx.Normalize(parsedURL)
 		if len(url) > 0 && !strings.Contains(url, "favicon.ico") {
 			// Save the URL
-			shortened, err := fs.GetShortFromURL(url)
+			shortened, err := fs.Get(url)
 			if err == nil {
 				c.HTML(http.StatusOK, "index.html", gin.H{
-					"shortened": shortened,
+					"shortened": shortened.(string),
 					"host":      Host,
 				})
 				return
@@ -123,7 +63,8 @@ func main() {
 
 			// Get a new shortend URL
 			shortened = newShortenedURL()
-			fs.Save(url, shortened)
+			fs.Set(url, shortened)
+			fs.Set(shortened.(string), url)
 
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"shortened": shortened,
@@ -132,9 +73,9 @@ func main() {
 			return
 		} else {
 			// Redirect the URL if it is shortened
-			url, err := fs.GetURLFromShort(action)
+			url, err := fs.Get(action)
 			if err == nil {
-				c.Redirect(301, url)
+				c.Redirect(301, url.(string))
 				return
 			} else {
 				if action == "" {
