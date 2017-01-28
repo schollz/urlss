@@ -18,13 +18,15 @@ var fs jsonstore.JSONStore
 func init() {
 	fs.Init()
 	fs.SetLocation("urls.json")
+	fs.Load()
 }
 
 func newShortenedURL() string {
 	for n := 2; n < 10; n++ {
 		for i := 0; i < 10; i++ {
 			candidate := RandString(n)
-			_, err := fs.Get(candidate)
+			var foo string
+			err := fs.Get(candidate, &foo)
 			if err != nil {
 				return candidate
 			}
@@ -52,10 +54,11 @@ func main() {
 		url, _ := urlx.Normalize(parsedURL)
 		if len(url) > 0 && !strings.Contains(url, "favicon.ico") {
 			// Save the URL
-			shortened, err := fs.Get(url)
+			var shortened string
+			err := fs.Get(url, &shortened)
 			if err == nil {
 				c.HTML(http.StatusOK, "index.html", gin.H{
-					"shortened": shortened.(string),
+					"shortened": shortened,
 					"host":      Host,
 				})
 				return
@@ -64,7 +67,7 @@ func main() {
 			// Get a new shortend URL
 			shortened = newShortenedURL()
 			fs.Set(url, shortened)
-			fs.Set(shortened.(string), url)
+			fs.Set(shortened, url)
 
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"shortened": shortened,
@@ -73,9 +76,10 @@ func main() {
 			return
 		} else {
 			// Redirect the URL if it is shortened
-			url, err := fs.Get(action)
+			var url string
+			err := fs.Get(action, &url)
 			if err == nil {
-				c.Redirect(301, url.(string))
+				c.Redirect(301, url)
 				return
 			} else {
 				if action == "" {
