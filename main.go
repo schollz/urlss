@@ -13,10 +13,14 @@ import (
 	"github.com/schollz/jsonstore"
 )
 
-var fs jsonstore.JSONStore
+var ks *jsonstore.JSONStore
 
 func init() {
-	fs.Load("urls.json")
+	var err error
+	ks, err = jsonstore.Open("urls.json.gz")
+	if err != nil {
+		ks = new(jsonstore.JSONStore)
+	}
 }
 
 func newShortenedURL() string {
@@ -24,7 +28,7 @@ func newShortenedURL() string {
 		for i := 0; i < 10; i++ {
 			candidate := RandString(n)
 			var foo string
-			err := fs.Get(candidate, &foo)
+			err := ks.Get(candidate, &foo)
 			if err != nil {
 				return candidate
 			}
@@ -53,7 +57,7 @@ func main() {
 		if len(url) > 0 && !strings.Contains(url, "favicon.ico") {
 			// Save the URL
 			var shortened string
-			err := fs.Get(url, &shortened)
+			err := ks.Get(url, &shortened)
 			if err == nil {
 				c.HTML(http.StatusOK, "index.html", gin.H{
 					"shortened": shortened,
@@ -64,9 +68,9 @@ func main() {
 
 			// Get a new shortend URL
 			shortened = newShortenedURL()
-			go fs.Set(url, shortened)
-			go fs.Set(shortened, url)
-
+			ks.Set(url, shortened)
+			ks.Set(shortened, url)
+			go jsonstore.Save(ks, "urls.json.gz")
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"shortened": shortened,
 				"host":      Host,
@@ -75,7 +79,7 @@ func main() {
 		} else {
 			// Redirect the URL if it is shortened
 			var url string
-			err := fs.Get(action, &url)
+			err := ks.Get(action, &url)
 			if err == nil {
 				c.Redirect(301, url)
 				return
