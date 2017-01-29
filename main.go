@@ -16,9 +16,7 @@ import (
 var fs jsonstore.JSONStore
 
 func init() {
-	fs.Init()
-	fs.SetLocation("urls.json")
-	fs.Load()
+	fs.Load("urls.json")
 }
 
 func newShortenedURL() string {
@@ -66,8 +64,8 @@ func main() {
 
 			// Get a new shortend URL
 			shortened = newShortenedURL()
-			fs.Set(url, shortened)
-			fs.Set(shortened, url)
+			go fs.Set(url, shortened)
+			go fs.Set(shortened, url)
 
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"shortened": shortened,
