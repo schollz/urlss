@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -44,8 +46,19 @@ func main() {
 	flag.StringVar(&Host, "h", "", "host (optional)")
 	flag.StringVar(&Port, "p", "8006", "port (default 8006)")
 	flag.Parse()
+
+	os.Mkdir("url-shortening-templates", 0755)
+	data, err := Asset("templates/index.html")
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile("url-shortening-templates/index.html", data, 0755)
+	if err != nil {
+		panic(err)
+	}
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob("url-shortening-templates/*")
+	os.RemoveAll("url-shortening-templates")
 	r.GET("/*action", func(c *gin.Context) {
 		action := c.Param("action")
 		action = action[1:len(action)]
