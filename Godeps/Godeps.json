@@ -1,7 +1,7 @@
 {
-	"ImportPath": "github.com/schollz/urls",
+	"ImportPath": "github.com/schollz/url-shortening-server",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v78",
+	"GodepVersion": "v79",
 	"Deps": [
 		{
 			"ImportPath": "github.com/PuerkitoBio/purell",
@@ -14,18 +14,18 @@
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin",
-			"Comment": "v1.1.4",
-			"Rev": "e2212d40c62a98b388a5eb48ecbdcf88534688ba"
+			"Comment": "v1.1-67-g6ce1e86",
+			"Rev": "6ce1e86a2715573af0c93ac2c4e4bda8788a0ad9"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin/binding",
-			"Comment": "v1.1.4",
-			"Rev": "e2212d40c62a98b388a5eb48ecbdcf88534688ba"
+			"Comment": "v1.1-67-g6ce1e86",
+			"Rev": "6ce1e86a2715573af0c93ac2c4e4bda8788a0ad9"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin/render",
-			"Comment": "v1.1.4",
-			"Rev": "e2212d40c62a98b388a5eb48ecbdcf88534688ba"
+			"Comment": "v1.1-67-g6ce1e86",
+			"Rev": "6ce1e86a2715573af0c93ac2c4e4bda8788a0ad9"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
@@ -36,24 +36,16 @@
 			"Rev": "8bb4a2e4339f55b15164907177e96e9faf885504"
 		},
 		{
-			"ImportPath": "github.com/manucorporat/sse",
-			"Rev": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d"
-		},
-		{
 			"ImportPath": "github.com/mattn/go-isatty",
-			"Rev": "30a891c33c7cde7b02a981314b4228ec99380cca"
+			"Rev": "281032e84ae07510239465db46bf442aa44b953a"
 		},
 		{
 			"ImportPath": "github.com/schollz/jsonstore",
-			"Rev": "cf95e796bf171a135c3a6942f543fc6e1e16be05"
-		},
-		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "f2499483f923065a842d38eb4c7f1927e6fc6e6d"
+			"Rev": "fc8cc856ef8aa34238b9d0091abf6d1d967b0c75"
 		},
 		{
 			"ImportPath": "golang.org/x/net/idna",
-			"Rev": "f2499483f923065a842d38eb4c7f1927e6fc6e6d"
+			"Rev": "61557ac0112b576429a0df080e1c2cef5dfbb642"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
@@ -61,15 +53,19 @@
 		},
 		{
 			"ImportPath": "golang.org/x/text/transform",
-			"Rev": "ece019dcfd29abcf65d0d1dfe145e8faad097640"
+			"Rev": "06d6eba81293389cafdff7fca90d75592194b2d9"
 		},
 		{
 			"ImportPath": "golang.org/x/text/unicode/norm",
-			"Rev": "ece019dcfd29abcf65d0d1dfe145e8faad097640"
+			"Rev": "06d6eba81293389cafdff7fca90d75592194b2d9"
 		},
 		{
 			"ImportPath": "golang.org/x/text/width",
-			"Rev": "ece019dcfd29abcf65d0d1dfe145e8faad097640"
+			"Rev": "06d6eba81293389cafdff7fca90d75592194b2d9"
+		},
+		{
+			"ImportPath": "gopkg.in/gin-contrib/sse.v0",
+			"Rev": "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
 		},
 		{
 			"ImportPath": "gopkg.in/go-playground/validator.v8",
@@ -78,7 +74,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "4c78c975fe7c825c6d1466c42be594d1d6f3aba6"
+			"Rev": "a3f3340b5840cee44f372bddb5880fcbc419b46a"
 		}
 	]
 }

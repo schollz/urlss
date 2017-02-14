@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"io"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -25,8 +27,9 @@ type JSONStore struct {
 	sync.RWMutex
 }
 
-// Open will load a jsonstore from a file.
-func Open(filename string) (*JSONStore, error) {
+// OpenOld will load a jsonstore from a file.
+// to be deprecated
+func OpenOld(filename string) (*JSONStore, error) {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -57,8 +60,40 @@ func Open(filename string) (*JSONStore, error) {
 	return ks, nil
 }
 
-// Save writes the jsonstore to disk.
-func Save(ks *JSONStore, filename string) (err error) {
+// Open will load a jsonstore from a file.
+func Open(filename string) (*JSONStore, error) {
+	var err error
+	f, err := os.Open(filename)
+	defer f.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var w io.Reader
+	toOpen := make(map[string]string)
+	if strings.HasSuffix(filename, ".gz") {
+		w, err = gzip.NewReader(f)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		w = f
+	}
+	err = json.NewDecoder(w).Decode(&toOpen)
+	if err != nil {
+		return nil, err
+	}
+
+	ks := new(JSONStore)
+	ks.Data = make(map[string]json.RawMessage)
+	for key := range toOpen {
+		ks.Data[key] = json.RawMessage(toOpen[key])
+	}
+	return ks, nil
+}
+
+// SaveOld writes the jsonstore to disk.
+func SaveOld(ks *JSONStore, filename string) (err error) {
 	ks.RLock()
 	defer ks.RUnlock()
 
@@ -78,6 +113,31 @@ func Save(ks *JSONStore, filename string) (err error) {
 		b = b2.Bytes()
 	}
 	return ioutil.WriteFile(filename, b, 0644)
+}
+
+// Save writes the jsonstore to disk
+func Save(ks *JSONStore, filename string) (err error) {
+	ks.RLock()
+	defer ks.RUnlock()
+	toSave := make(map[string]string)
+	for key := range ks.Data {
+		toSave[key] = string(ks.Data[key])
+	}
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if strings.HasSuffix(filename, ".gz") {
+		w := gzip.NewWriter(f)
+		defer w.Close()
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", " ")
+		return enc.Encode(toSave)
+	}
+	enc := json.NewEncoder(f)
+	enc.SetIndent("", " ")
+	return enc.Encode(toSave)
 }
 
 // Set saves a value at the given key.

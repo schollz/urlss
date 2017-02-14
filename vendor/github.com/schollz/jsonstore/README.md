@@ -2,13 +2,8 @@
 
 [![GoDoc](https://godoc.org/github.com/schollz/jsonstore?status.svg)](https://godoc.org/github.com/schollz/jsonstore)
 
-*JSONStore* is a Go-library for a simple thread-safe in-memory JSON key-store with persistent backend.
-It's made for those times where you don't need a RDBMS like [MySQL](https://www.mysql.com/),
-or a NoSQL like [MongoDB](https://www.mongodb.com/) - basically when you just need a simple keystore.
-A really simple keystore. *JSONStore* is used in those times you don't need a distributed keystore
-like [etcd](https://coreos.com/etcd/docs/latest/), or
-a remote keystore [Redis](https://redis.io/) or a local keystore like [Bolt](https://github.com/boltdb/bolt).
-Its really for those times where you just need a JSON file, hence *JSONStore*.
+*JSONStore* is a Go-library for a simple thread-safe in-memory JSON key-store with persistent backend. It's made for those times where you don't need a RDBMS like [MySQL](https://www.mysql.com/), or a NoSQL like [MongoDB](https://www.mongodb.com/) - basically when you just need a simple keystore. A really simple keystore. *JSONStore* is used in those times you don't need a distributed keystore like [etcd](https://coreos.com/etcd/docs/latest/), or
+a remote keystore [Redis](https://redis.io/) or a local keystore like [Bolt](https://github.com/boltdb/bolt). Its really for those times where you just need a JSON file.
 
 ## Usage
 
@@ -67,7 +62,25 @@ $ zcat humans.json.gz
 
 - [schollz/urls](https://github.com/schollz/urls) - URL shortening
 
+# Dev
 
+Benchmark against using Redis and BoltDB as KeyStores using Go1.8 (Intel i5-4310U CPU @ 2.00GHz):
+
+```
+$ go test -bench=. tests/redis/* > redis.txt
+$ go test -bench=. tests/bolt/* > bolt.txt
+$ go test -bench=. > jsonstore.txt
+$ benchcmp bolt.txt jsonstore.txt
+benchmark           old ns/op     new ns/op     delta
+BenchmarkSet-4      4633164       939           -99.98%
+BenchmarkGet-4      3824          1564          -59.10%
+BenchmarkOpen-4     22049         153141        +594.55%
+$ benchcmp redis.txt jsonstore.txt
+benchmark           old ns/op     new ns/op     delta
+BenchmarkSet-4      29255         939           -96.79%
+BenchmarkGet-4      33082         1564          -95.27%
+BenchmarkOpen-4     14624         153141        +947.19%
+```
 
 # License
 
