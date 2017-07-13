@@ -1,13 +1,37 @@
-# urlss
+<p align="center">
+<img
+    src="logo.png"
+    width="260" height="80" border="0" alt="urlss">
+<br>
+<a href="https://travis-ci.org/schollz/urlss"><img src="https://img.shields.io/travis/schollz/urlss.svg?style=flat-square" alt="Build Status"></a>
+<a href="http://gocover.io/github.com/schollz/urlss/lib"><img src="https://img.shields.io/badge/coverage-76%25-yellow.svg?style=flat-square" alt="Code Coverage"></a>
+<a href="https://godoc.org/github.com/schollz/urlss/lib"><img src="https://img.shields.io/badge/api-reference-blue.svg?style=flat-square" alt="GoDoc"></a>
+</p>
 
-*A URL Shortening Service.*
+<p align="center">A URL shorterning service.</p>
 
-Install and run with
+This is a very simple URL shortening service. All URLs are saved into a Gzipped JSON backend, `urls.json.gz`.
+
+Getting Started
+===============
+
+## Install
+
+If you have Go installed, just do
 
     go get -u -v github.com/schollz/urlss
+
+Otherwise, use the releases and [download urlss](https://github.com/schollz/urlss/releases/latest).
+
+
+## Run
+
+Once installed you can run the URL shortening service
+
     urlss -p 8009
 
-All URLs are saved into a Gzipped JSON backend, `urls.json.gz`.
+and open a web browser to http://localhost:8009 to view it (or use a reverse proxy to attach it to a domain name).
+
 
 ## Development
 
@@ -20,3 +44,10 @@ Then use the following to build a new version of the server (with builtin templa
 
 
     go-bindata.exe templates/... && go build && ./urlss
+
+
+## License
+
+MIT
+
+
