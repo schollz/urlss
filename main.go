@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -29,65 +30,70 @@ func init() {
 var Port string
 
 func main() {
-
 	gin.SetMode(gin.ReleaseMode)
 	flag.StringVar(&Port, "p", "8006", "port (default 8006)")
 	flag.Parse()
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.HTMLRender = loadTemplates("index.html")
-	r.GET("/*action", func(c *gin.Context) {
-		action := c.Request.RequestURI
-		action = action[1:len(action)]
-		if strings.Contains(action, "http") && !strings.Contains(action, "//") {
-			action = strings.Replace(action, "/", "//", 1)
-		}
-		parsedURL, _ := urlx.Parse(action)
-		url, _ := urlx.Normalize(parsedURL)
-		if len(url) > 0 && !strings.Contains(url, "favicon.ico") {
-			// Save the URL
-			var shortened string
-			err := ks.Get(url, &shortened)
-			if err == nil {
-				c.HTML(http.StatusOK, "index.html", gin.H{
-					"shortened": shortened,
-				})
-				return
-			}
+	r.GET("/*action", handleAction)
+	// Start server
+	fmt.Println("Listening on port", Port)
+	r.Run(":" + Port) // listen and serve on 0.0.0.0:8080
+}
 
+// handleAction performs the shortening or redirecting
+func handleAction(c *gin.Context) {
+	fmt.Println(c.Request.RequestURI)
+	action := c.Request.RequestURI
+	action = action[1:len(action)]
+	shortened, redirect, err := shortenURL(action)
+	if redirect {
+		c.Redirect(301, shortened)
+	} else {
+		errString := ""
+		if err != nil {
+			errString = err.Error()
+		}
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"shortened": shortened,
+			"error":     errString,
+		})
+	}
+}
+
+func shortenURL(requestURL string) (shortened string, redirect bool, err error) {
+	if strings.Contains(requestURL, "http") && !strings.Contains(requestURL, "//") {
+		requestURL = strings.Replace(requestURL, "/", "//", 1)
+	}
+	parsedURL, _ := urlx.Parse(requestURL)
+	url, _ := urlx.Normalize(parsedURL)
+	if len(url) > 0 && !strings.Contains(url, "favicon") {
+		// Check if it is already a URL
+		errFound := ks.Get(url, &shortened)
+		if errFound != nil {
 			// Get a new shortend URL
 			shortened = newShortenedURL()
 			ks.Set(url, shortened)
 			ks.Set(shortened, url)
 			go jsonstore.Save(ks, "urls.json.gz")
-			c.HTML(http.StatusOK, "index.html", gin.H{
-				"shortened": shortened,
-			})
 			log.Printf("Shortened %s to %s", url, shortened)
-			return
+		}
+	} else {
+		// Redirect the URL if it is shortened
+		err = ks.Get(requestURL, &shortened)
+		if err == nil {
+			redirect = true
+			log.Printf("Redirect %s to %s", requestURL, shortened)
 		} else {
-			// Redirect the URL if it is shortened
-			var url string
-			err := ks.Get(action, &url)
-			if err == nil {
-				log.Printf("Redirecting %s to %s", action, url)
-				c.Redirect(301, url)
-				return
+			if requestURL == "" {
+				err = nil
 			} else {
-				if action == "" {
-					c.HTML(http.StatusOK, "index.html", gin.H{})
-				} else {
-					c.HTML(http.StatusOK, "index.html", gin.H{
-						"error": "Could not find " + action,
-					})
-				}
+				err = errors.New("Could not find " + requestURL)
 			}
 		}
-	})
-
-	// Start server
-	fmt.Println("Listening on port", Port)
-	r.Run(":" + Port) // listen and serve on 0.0.0.0:8080
+	}
+	return
 }
 
 // From http://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang

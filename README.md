@@ -4,13 +4,12 @@
     width="260" height="80" border="0" alt="urlss">
 <br>
 <a href="https://travis-ci.org/schollz/urlss"><img src="https://img.shields.io/travis/schollz/urlss.svg?style=flat-square" alt="Build Status"></a>
-<a href="http://gocover.io/github.com/schollz/urlss/lib"><img src="https://img.shields.io/badge/coverage-76%25-yellow.svg?style=flat-square" alt="Code Coverage"></a>
-<a href="https://godoc.org/github.com/schollz/urlss/lib"><img src="https://img.shields.io/badge/api-reference-blue.svg?style=flat-square" alt="GoDoc"></a>
+<a href="http://gocover.io/github.com/schollz/urlss/lib"><img src="https://img.shields.io/badge/coverage-42%25-yellow.svg?style=flat-square" alt="Code Coverage"></a>
 </p>
 
 <p align="center">A URL shorterning service.</p>
 
-This is a very simple URL shortening service. All URLs are saved into a Gzipped JSON backend, `urls.json.gz`.
+This is a very simple URL shortening service. All URLs are saved into a Gzipped JSON backend, `urls.json.gz`. Try it out at [urls.schollz.com](https://urls.schollz.com).
 
 Getting Started
 ===============
