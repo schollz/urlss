@@ -3,14 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"github.com/goware/urlx"
 	"github.com/schollz/jsonstore"
@@ -33,20 +33,9 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	flag.StringVar(&Port, "p", "8006", "port (default 8006)")
 	flag.Parse()
-
-	os.Mkdir("url-shortening-templates", 0755)
-	data, err := Asset("templates/index.html")
-	if err != nil {
-		panic(err)
-	}
-	err = ioutil.WriteFile("url-shortening-templates/index.html", data, 0755)
-	if err != nil {
-		panic(err)
-	}
 	r := gin.Default()
 	r.Use(gin.Logger())
-	r.LoadHTMLGlob("url-shortening-templates/*")
-	os.RemoveAll("url-shortening-templates")
+	r.HTMLRender = loadTemplates("index.html")
 	r.GET("/*action", func(c *gin.Context) {
 		action := c.Request.RequestURI
 		action = action[1:len(action)]
@@ -144,4 +133,26 @@ func newShortenedURL() string {
 		}
 	}
 	return ""
+}
+
+// loadTemplates will use the built-in assets to
+// load required templates
+func loadTemplates(list ...string) multitemplate.Render {
+	r := multitemplate.New()
+
+	for _, x := range list {
+		templateString, err := Asset("templates/" + x)
+		if err != nil {
+			panic(err)
+		}
+
+		tmplMessage, err := template.New(x).Parse(string(templateString))
+		if err != nil {
+			panic(err)
+		}
+
+		r.Add(x, tmplMessage)
+	}
+
+	return r
 }
