@@ -4,6 +4,7 @@
     width="260" height="80" border="0" alt="urlss">
 <br>
 <a href="https://travis-ci.org/schollz/urlss"><img src="https://img.shields.io/travis/schollz/urlss.svg?style=flat-square" alt="Build Status"></a>
+<a href="https://github.com/schollz/urlss/releases/latest"><img src="https://img.shields.io/badge/version-0.1.0-brightgreen.svg?style=flat-square" alt="Version"></a>
 <a href="http://gocover.io/github.com/schollz/urlss/lib"><img src="https://img.shields.io/badge/coverage-42%25-yellow.svg?style=flat-square" alt="Code Coverage"></a>
 </p>
 
