@@ -1,12 +1,22 @@
-# urls
+# urlss
 
-A simple URL shortening service.
+*A URL Shortening Service.*
 
-Uses JSON backend.
+Install and run with
 
-```
-go get -u -v github.com/schollz/url-shortening-server
-url-shortening-server -h hostname -p 8009
-```
+    go get -u -v github.com/schollz/urlss
+    urlss -p 8009
 
-The hostname is important for getting good URLs for redirecting.
+All URLs are saved into a Gzipped JSON backend, `urls.json.gz`.
+
+## Development
+
+Make sure you have `go-bindata` installed so that templates are updated:
+
+    go get -u github.com/jteeuwen/go-bindata/...
+
+
+Then use the following to build a new version of the server (with builtin templates):
+
+
+    go-bindata.exe templates/... && go build && ./urlss

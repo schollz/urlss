@@ -38,7 +38,13 @@
         <div class="intro">
             <h1>Shorten URL</h1>
             {{ if .shortened }}
-            <h2><a href="{{ .host }}/{{ .shortened }}">{{ .shortened }}</a></h2>
+            <h2><a href="/{{ .shortened }}">
+            <script>
+var getUrl = window.location;
+var baseUrl = getUrl .protocol + "//" + getUrl.host 
+document.write(baseUrl + "/" + {{.shortened}});
+                </script>
+                </a></h2>
             {{ else if .error }}
             <h2>{{ .error }}</h2>
             {{ else }}
@@ -68,7 +74,7 @@
         function shortenURL() {
             var tb = document.getElementById("urlshorten");
             console.log(tb.value);
-            window.location = "{{ .host }}/" + tb.value;
+            window.location = "/" + tb.value;
             return false
         }
     </script>

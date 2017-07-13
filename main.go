@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -25,25 +26,11 @@ func init() {
 	}
 }
 
-func newShortenedURL() string {
-	for n := 2; n < 10; n++ {
-		for i := 0; i < 10; i++ {
-			candidate := RandString(n)
-			var foo string
-			err := ks.Get(candidate, &foo)
-			if err != nil {
-				return candidate
-			}
-		}
-	}
-	return ""
-}
-
-var Host, Port string
+var Port string
 
 func main() {
+
 	gin.SetMode(gin.ReleaseMode)
-	flag.StringVar(&Host, "h", "", "host (optional)")
 	flag.StringVar(&Port, "p", "8006", "port (default 8006)")
 	flag.Parse()
 
@@ -57,10 +44,11 @@ func main() {
 		panic(err)
 	}
 	r := gin.Default()
+	r.Use(gin.Logger())
 	r.LoadHTMLGlob("url-shortening-templates/*")
 	os.RemoveAll("url-shortening-templates")
 	r.GET("/*action", func(c *gin.Context) {
-		action := c.Param("action")
+		action := c.Request.RequestURI
 		action = action[1:len(action)]
 		if strings.Contains(action, "http") && !strings.Contains(action, "//") {
 			action = strings.Replace(action, "/", "//", 1)
@@ -74,7 +62,6 @@ func main() {
 			if err == nil {
 				c.HTML(http.StatusOK, "index.html", gin.H{
 					"shortened": shortened,
-					"host":      Host,
 				})
 				return
 			}
@@ -86,28 +73,30 @@ func main() {
 			go jsonstore.Save(ks, "urls.json.gz")
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"shortened": shortened,
-				"host":      Host,
 			})
+			log.Printf("Shortened %s to %s", url, shortened)
 			return
 		} else {
 			// Redirect the URL if it is shortened
 			var url string
 			err := ks.Get(action, &url)
 			if err == nil {
+				log.Printf("Redirecting %s to %s", action, url)
 				c.Redirect(301, url)
 				return
 			} else {
 				if action == "" {
-					c.HTML(http.StatusOK, "index.html", gin.H{"host": Host})
+					c.HTML(http.StatusOK, "index.html", gin.H{})
 				} else {
 					c.HTML(http.StatusOK, "index.html", gin.H{
 						"error": "Could not find " + action,
-						"host":  Host,
 					})
 				}
 			}
 		}
 	})
+
+	// Start server
 	fmt.Println("Listening on port", Port)
 	r.Run(":" + Port) // listen and serve on 0.0.0.0:8080
 }
@@ -138,4 +127,21 @@ func RandString(n int) string {
 	}
 
 	return string(b)
+}
+
+// newShortenedURL generates a shortened URL,
+// stochastically, checking for collisions until
+// a selects a free one
+func newShortenedURL() string {
+	for n := 1; n < 10; n++ {
+		for i := 0; i < 10; i++ {
+			candidate := RandString(n)
+			var foo string
+			err := ks.Get(candidate, &foo)
+			if err != nil {
+				return candidate
+			}
+		}
+	}
+	return ""
 }
